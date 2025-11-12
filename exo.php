@@ -47,8 +47,8 @@ $etat_caisse = [
     "piece002" => ["quantite" => 45, "valeur" => 0.02],
     "piece001" => ["quantite" => 45, "valeur" => 0.01],
 ];
-$montantTotal = 33.40;
-$montantPaye = 50;
+$montantTotal = 433.404;
+$montantPaye = 7750;
 
 function verifier_la_somme_donnee_par_client($montantTotal, $montantPaye) {
     if ($montantPaye < $montantTotal) {
@@ -107,15 +107,13 @@ function calculer_nombre_piece_ou_billet($reste, $pieces_billets_rendus, &$etat_
     
     foreach ($etat_caisse as $nom => $info) {
         $valeur = $info["valeur"];
-        
         if ($reste >= $valeur) {
             $quantite_a_prendre = intval($reste / $valeur);
-            // Limiter à la quantité disponible
-            $quantite_a_prendre = min($quantite_a_prendre, $etat_caisse[$nom]["quantite"]);
+            $quantite_a_prendre = min($quantite_a_prendre, $etat_caisse[$nom]["quantite"]); // Limiter à la quantité disponible
             if ($quantite_a_prendre > 0) {
                 $pieces_billets_rendus[$nom] += $quantite_a_prendre;
                 $etat_caisse[$nom]["quantite"] -= $quantite_a_prendre;
-                $reste = round($reste - ($valeur * $quantite_a_prendre), 2);
+                $reste = round($reste - ($valeur * $quantite_a_prendre), 2);// cas de précision avec les décimales
             }
         }
     }
