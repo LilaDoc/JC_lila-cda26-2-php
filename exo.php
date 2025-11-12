@@ -50,7 +50,7 @@ $etat_caisse = [
 $montantTotal = 33.40;
 $montantPaye = 50;
 
-function verifier_la_somme_donnee_au_client($montantTotal, $montantPaye) {
+function verifier_la_somme_donnee_par_client($montantTotal, $montantPaye) {
     if ($montantPaye < $montantTotal) {
         echo "Le montant payé est inférieur au montant total\n";
         return false;
@@ -66,6 +66,7 @@ function verfier_les_fond_de_caisse($etat_caisse) {
     }
     return $total;
 }
+
 function afficher_monnaie_a_rendre($montantTotal, $montantPaye, &$etat_caisse) {
     $reste = $montantPaye - $montantTotal;
     $pieces_billets_rendus = [];
@@ -104,26 +105,21 @@ function calculer_nombre_piece_ou_billet($reste, $pieces_billets_rendus, &$etat_
     }
     
     
-    while ($reste > 0.001) {
-        $monnaie_utilisee = false;
+    foreach ($etat_caisse as $nom => $info) {
+        $valeur = $info["valeur"];
         
-        foreach ($etat_caisse as $nom => $info) {
-            $valeur = $info["valeur"];
-            
-            if ($reste >= $valeur && check_monnaie_disponible($etat_caisse, $nom)) {
-                $pieces_billets_rendus[$nom] += 1;
-                $etat_caisse[$nom]["quantite"] -= 1;
-                $reste -= $valeur;
-                $monnaie_utilisee = true;
-                break;
+        if ($reste >= $valeur) {
+            $quantite_a_prendre = intval($reste / $valeur);
+            // Limiter à la quantité disponible
+            $quantite_a_prendre = min($quantite_a_prendre, $etat_caisse[$nom]["quantite"]);
+            if ($quantite_a_prendre > 0) {
+                $pieces_billets_rendus[$nom] += $quantite_a_prendre;
+                $etat_caisse[$nom]["quantite"] -= $quantite_a_prendre;
+                $reste = round($reste - ($valeur * $quantite_a_prendre), 2);
             }
         }
-        
-        if (!$monnaie_utilisee) {
-            break;
-        }
     }
-    
+
     return $pieces_billets_rendus;
 }
         
@@ -131,8 +127,8 @@ function calculer_nombre_piece_ou_billet($reste, $pieces_billets_rendus, &$etat_
 
 
 
-function check_monnaie_disponible($etat_caisse, $monnaie_to_check) {
-    if ($etat_caisse[$monnaie_to_check]["quantite"] > 0) {
+function check_monnaie_disponible($etat_caisse, $monnaie_to_check,$quantite_a_prendre) {
+    if ($etat_caisse[$monnaie_to_check]["quantite"] >= $quantite_a_prendre) {
         return true;
     } else {
         return false;
