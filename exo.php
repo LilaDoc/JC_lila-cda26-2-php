@@ -47,8 +47,12 @@ $etat_caisse = [
     "piece002" => ["quantite" => 45, "valeur" => 0.02],
     "piece001" => ["quantite" => 45, "valeur" => 0.01],
 ];
+
+
 $montantTotal = 433.404;
-$montantPaye = 7750;
+$montantPaye = 700;
+$mode= "pick";
+$choice= "billet50";
 
 function verifier_la_somme_donnee_par_client($montantTotal, $montantPaye) {
     if ($montantPaye < $montantTotal) {
@@ -67,14 +71,14 @@ function verfier_les_fond_de_caisse($etat_caisse) {
     return $total;
 }
 
-function afficher_monnaie_a_rendre($montantTotal, $montantPaye, &$etat_caisse) {
+function afficher_monnaie_a_rendre($montantTotal, $montantPaye, &$etat_caisse, $mode, $choice) {
     $reste = $montantPaye - $montantTotal;
     $pieces_billets_rendus = [];
     if ($reste > verfier_les_fond_de_caisse($etat_caisse)) {
         echo "Il n'y a pas assez de fonds dans la caisse pour rendre le reste\n";
         return;
     }else{
-        $pieces_billets_rendus = calculer_nombre_piece_ou_billet($reste, $pieces_billets_rendus, $etat_caisse);
+        $pieces_billets_rendus = calculer_nombre_piece_ou_billet($reste, $pieces_billets_rendus, $etat_caisse, $mode, $choice);
         echo "Il faut rendre : " . $reste . " euros\n";
         foreach ($pieces_billets_rendus as $monnaie => $quantite) {
             if ($quantite > 0) {
@@ -84,7 +88,7 @@ function afficher_monnaie_a_rendre($montantTotal, $montantPaye, &$etat_caisse) {
     }
 }
 
-function calculer_nombre_piece_ou_billet($reste, $pieces_billets_rendus, &$etat_caisse) {
+function calculer_nombre_piece_ou_billet($reste, $pieces_billets_rendus, &$etat_caisse, $mode, $choice) {
     if (empty($pieces_billets_rendus)) {
         $pieces_billets_rendus = [
             "billet500" => 0,
@@ -103,28 +107,64 @@ function calculer_nombre_piece_ou_billet($reste, $pieces_billets_rendus, &$etat_
             "piece001" => 0,
         ];
     }
+    if ($mode == "standard") {
     
-    
-    foreach ($etat_caisse as $nom => $info) {
-        $valeur = $info["valeur"];
-        if ($reste >= $valeur) {
-            $quantite_a_prendre = intval($reste / $valeur);
-            $quantite_a_prendre = min($quantite_a_prendre, $etat_caisse[$nom]["quantite"]); // Limiter à la quantité disponible
-            if ($quantite_a_prendre > 0) {
-                $pieces_billets_rendus[$nom] += $quantite_a_prendre;
-                $etat_caisse[$nom]["quantite"] -= $quantite_a_prendre;
-                $reste = round($reste - ($valeur * $quantite_a_prendre), 2);// cas de précision avec les décimales
+        foreach ($etat_caisse as $nom => $info) {
+            $valeur = $info["valeur"];
+            if ($reste >= $valeur) {
+                $quantite_a_prendre = intval($reste / $valeur);
+                $quantite_a_prendre = min($quantite_a_prendre, $etat_caisse[$nom]["quantite"]); // Limiter à la quantité disponible
+                if ($quantite_a_prendre > 0) {
+                    $pieces_billets_rendus[$nom] += $quantite_a_prendre;
+                    $etat_caisse[$nom]["quantite"] -= $quantite_a_prendre;
+                    $reste = round($reste - ($valeur * $quantite_a_prendre), 2);// cas de précision avec les décimales
+                }
             }
         }
     }
+    elseif($mode=="pick"){
+        echo("pickmode");
+        if (isset($etat_caisse[$choice])){
+            $monnaie_choisie = $etat_caisse[$choice];
+            echo($monnaie_choisie["valeur"]);
+            $quantite_a_prendre = intval($reste / $monnaie_choisie["valeur"]);
+            echo("/n".$quantite_a_prendre."resultat interval");
+            $quantite_a_prendre = min($quantite_a_prendre, $etat_caisse[$choice]["quantite"]);
+            echo($quantite_a_prendre);
+            if ($quantite_a_prendre > 0) {
+                $pieces_billets_rendus[$choice] += $quantite_a_prendre;
+                $etat_caisse[$choice]["quantite"] -= $quantite_a_prendre;
+                $reste = round($reste - ($monnaie_choisie["valeur"] * $quantite_a_prendre), 2);// cas de précision avec les décimales
+            }
+            foreach ($etat_caisse as $nom => $info) {
+                if ($nom == $choice) {
+                    continue;  
+                }
+                if ($reste <= 0) {
+                    break;  
+                }
+                $valeur = $info["valeur"];
+                if ($reste >= $valeur) {
+                    $quantite_a_prendre = intval($reste / $valeur);
+                    $quantite_a_prendre = min($quantite_a_prendre, $etat_caisse[$nom]["quantite"]); // Limiter à la quantité disponible
+                    if ($quantite_a_prendre > 0) {
+                        $pieces_billets_rendus[$nom] += $quantite_a_prendre;
+                        $etat_caisse[$nom]["quantite"] -= $quantite_a_prendre;
+                        $reste = round($reste - ($valeur * $quantite_a_prendre), 2);// cas de précision avec les décimales
+                    }
+                }
+            }
+        }else{
+            echo("ce choix n'est pas disponible");
+        }
+    }else{
+        echo("ce mode n'exsiste pas");
+    }
+    
 
     return $pieces_billets_rendus;
 }
         
-
-
-
-
 function check_monnaie_disponible($etat_caisse, $monnaie_to_check,$quantite_a_prendre) {
     if ($etat_caisse[$monnaie_to_check]["quantite"] >= $quantite_a_prendre) {
         return true;
@@ -134,8 +174,8 @@ function check_monnaie_disponible($etat_caisse, $monnaie_to_check,$quantite_a_pr
 }
 
 
-
-afficher_monnaie_a_rendre($montantTotal, $montantPaye, $etat_caisse);
+//go calcul
+afficher_monnaie_a_rendre($montantTotal, $montantPaye, $etat_caisse, $mode, $choice);
 
 
 
