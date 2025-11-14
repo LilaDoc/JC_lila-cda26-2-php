@@ -32,27 +32,27 @@
 
 
 $etat_caisse = [
-    "billet500" => ["quantite" => 0, "valeur" => 500],
-    "billet200" => ["quantite" => 1, "valeur" => 200],
-    "billet100" => ["quantite" => 1, "valeur" => 100],
-    "billet50" => ["quantite" => 10, "valeur" => 50],
-    "billet20" => ["quantite" => 5, "valeur" => 20],
-    "billet10" => ["quantite" => 10, "valeur" => 10],
-    "piece2" => ["quantite" => 45, "valeur" => 2],
-    "piece1" => ["quantite" => 30, "valeur" => 1],
-    "piece05" => ["quantite" => 30, "valeur" => 0.5],
-    "piece02" => ["quantite" => 45, "valeur" => 0.2],
-    "piece01" => ["quantite" => 45, "valeur" => 0.1],
-    "piece005" => ["quantite" => 45, "valeur" => 0.05],
-    "piece002" => ["quantite" => 45, "valeur" => 0.02],
-    "piece001" => ["quantite" => 45, "valeur" => 0.01],
+    "billet500" => ["quantite" => 0, "valeur" => 500, "tampon" => 1],
+    "billet200" => ["quantite" => 1, "valeur" => 200, "tampon" => 2],
+    "billet100" => ["quantite" => 1, "valeur" => 100, "tampon" => 3],
+    "billet50" => ["quantite" => 10, "valeur" => 50, "tampon" => 4],
+    "billet20" => ["quantite" => 5, "valeur" => 20, "tampon" => 5],
+    "billet10" => ["quantite" => 10, "valeur" => 10, "tampon" => 6],
+    "piece2" => ["quantite" => 45, "valeur" => 2, "tampon" => 7],
+    "piece1" => ["quantite" => 30, "valeur" => 1,"tampon" => 8],
+    "piece05" => ["quantite" => 30, "valeur" => 0.5,"tampon" => 9],
+    "piece02" => ["quantite" => 45, "valeur" => 0.2, "tampon" => 10],
+    "piece01" => ["quantite" => 45, "valeur" => 0.1, "tampon" => 11],
+    "piece005" => ["quantite" => 45, "valeur" => 0.05, "tampon" => 12],
+    "piece002" => ["quantite" => 45, "valeur" => 0.02, "tampon" => 13],
+    "piece001" => ["quantite" => 45, "valeur" => 0.01, "tampon" => 14],
 ];
 
 
-$montantTotal = 433.404;
-$montantPaye = 700;
-$mode= "smallFirst";
-$choice= "billet50";
+$montantTotal = 700;
+$montantPaye = 700.46;
+$mode= "pick";
+$choice= "piece001";
 
 function verifier_la_somme_donnee_par_client($montantTotal, $montantPaye) {
     if ($montantPaye < $montantTotal) {
@@ -123,20 +123,22 @@ function calculer_nombre_piece_ou_billet($reste, $pieces_billets_rendus, &$etat_
         }
     }
     elseif($mode=="pick"){
-        echo("pickmode");
+        echo("\n"."pickmode");
+        $lenght = count($etat_caisse);
         if (isset($etat_caisse[$choice])){
             $monnaie_choisie = $etat_caisse[$choice];
-            echo($monnaie_choisie["valeur"]);
+            echo("\n".$monnaie_choisie["valeur"]);
             $quantite_a_prendre = intval($reste / $monnaie_choisie["valeur"]);
-            echo("/n".$quantite_a_prendre."resultat interval");
-            $quantite_a_prendre = min($quantite_a_prendre, $etat_caisse[$choice]["quantite"]);
-            echo($quantite_a_prendre);
+            echo("\n".$quantite_a_prendre."resultat interval");
+            $quantite_a_prendre = min($quantite_a_prendre, $etat_caisse[$choice]["quantite"]-$etat_caisse[$choice]["tampon"]); // Limiter à la quantité disponible
+            echo("\n".$quantite_a_prendre);
             if ($quantite_a_prendre > 0) {
                 $pieces_billets_rendus[$choice] += $quantite_a_prendre;
                 $etat_caisse[$choice]["quantite"] -= $quantite_a_prendre;
                 $reste = round($reste - ($monnaie_choisie["valeur"] * $quantite_a_prendre), 2);// cas de précision avec les décimales
             }
             foreach ($etat_caisse as $nom => $info) {
+
                 if ($nom == $choice) {
                     continue;  
                 }
@@ -146,17 +148,28 @@ function calculer_nombre_piece_ou_billet($reste, $pieces_billets_rendus, &$etat_
                 $valeur = $info["valeur"];
                 if ($reste >= $valeur) {
                     $quantite_a_prendre = intval($reste / $valeur);
-                    $quantite_a_prendre = min($quantite_a_prendre, $etat_caisse[$nom]["quantite"]); // Limiter à la quantité disponible
+                    $quantite_a_prendre = min($quantite_a_prendre, $etat_caisse[$nom]["quantite"]-$etat_caisse[$nom]["tampon"]); // Limiter à la quantité disponible
+                    $lenght--;
                     if ($quantite_a_prendre > 0) {
                         $pieces_billets_rendus[$nom] += $quantite_a_prendre;
                         $etat_caisse[$nom]["quantite"] -= $quantite_a_prendre;
                         $reste = round($reste - ($valeur * $quantite_a_prendre), 2);// cas de précision avec les décimales
                     }
                 }
+            
             }
+            echo("\n"."reste ".$reste);
         }else{
-            echo("ce choix n'est pas disponible");
+            echo("\n"."ce choix n'est pas disponible");
         }
+
+// garder le tampon
+// va chercher le reste dans le reste des pieces a la fin en allant du plus grand au plus petit
+
+
+
+
+
     // }elseif($mode == "smallFirst"){
     //     $table_croissant = $etat_caisse;// version croissante 
     //     uasort($table_croissant, function($a, $b) { // trie croissant            
