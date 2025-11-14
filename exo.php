@@ -51,7 +51,7 @@ $etat_caisse = [
 
 $montantTotal = 433.404;
 $montantPaye = 700;
-$mode= "pick";
+$mode= "smallFirst";
 $choice= "billet50";
 
 function verifier_la_somme_donnee_par_client($montantTotal, $montantPaye) {
@@ -157,6 +157,35 @@ function calculer_nombre_piece_ou_billet($reste, $pieces_billets_rendus, &$etat_
         }else{
             echo("ce choix n'est pas disponible");
         }
+    // }elseif($mode == "smallFirst"){
+    //     $table_croissant = $etat_caisse;// version croissante 
+    //     uasort($table_croissant, function($a, $b) { // trie croissant            
+    //         return $a["valeur"] <=> $b["valeur"];        
+    //     }); 
+        
+    //     foreach($table_croissant as $nom => $info){
+    //         echo($reste);
+    //         if ($reste <= 0){
+    //             break;
+    //         }
+    //         $valeur = $info["valeur"];
+            
+    //         // Si le reste est plus petit que la valeur de cette pièce, passer à la suivante
+    //         if ($reste < $valeur) {
+    //             continue;
+    //         }
+            
+    //         // Prendre le maximum possible de cette pièce avant de passer à la suivante
+    //         $quantite_a_prendre = intval($reste / $valeur);
+    //         $quantite_a_prendre = min($quantite_a_prendre, $etat_caisse[$nom]["quantite"]); // Limiter à la quantité disponible
+            
+    //         if ($quantite_a_prendre > 0) {
+    //             $pieces_billets_rendus[$nom] += $quantite_a_prendre;
+    //             $etat_caisse[$nom]["quantite"] -= $quantite_a_prendre;
+    //             $reste = round($reste - ($valeur * $quantite_a_prendre), 2);
+    //         }
+    //     }
+        
     }else{
         echo("ce mode n'exsiste pas");
     }
