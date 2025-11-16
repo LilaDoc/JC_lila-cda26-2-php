@@ -32,27 +32,27 @@
 
 
 $etat_caisse = [
-    "billet500" => ["quantite" => 0, "valeur" => 500, "tampon" => 1],
+    "billet500" => ["quantite" => 0, "valeur" => 500, "tampon" => 0],
     "billet200" => ["quantite" => 1, "valeur" => 200, "tampon" => 2],
     "billet100" => ["quantite" => 1, "valeur" => 100, "tampon" => 3],
     "billet50" => ["quantite" => 10, "valeur" => 50, "tampon" => 4],
-    "billet20" => ["quantite" => 5, "valeur" => 20, "tampon" => 5],
+    "billet20" => ["quantite" => 5, "valeur" => 20, "tampon" => 10],
     "billet10" => ["quantite" => 10, "valeur" => 10, "tampon" => 6],
-    "piece2" => ["quantite" => 45, "valeur" => 2, "tampon" => 7],
+    "piece2" => ["quantite" => 45, "valeur" => 2, "tampon" => 35],
     "piece1" => ["quantite" => 30, "valeur" => 1,"tampon" => 8],
     "piece05" => ["quantite" => 30, "valeur" => 0.5,"tampon" => 9],
-    "piece02" => ["quantite" => 45, "valeur" => 0.2, "tampon" => 10],
+    "piece02" => ["quantite" => 45, "valeur" => 0.2, "tampon" => 20],
     "piece01" => ["quantite" => 45, "valeur" => 0.1, "tampon" => 11],
     "piece005" => ["quantite" => 45, "valeur" => 0.05, "tampon" => 12],
-    "piece002" => ["quantite" => 45, "valeur" => 0.02, "tampon" => 13],
+    "piece002" => ["quantite" => 45, "valeur" => 0.02, "tampon" => 26],
     "piece001" => ["quantite" => 45, "valeur" => 0.01, "tampon" => 14],
 ];
 
 
-$montantTotal = 700;
+$montantTotal = 500;
 $montantPaye = 700.46;
-$mode= "pick";
-$choice= "piece001";
+$mode= "smallFirst";// standard , pick , smallFirst
+$choice= "piece001";// piece001 , billet50 , billet20 etc
 
 function verifier_la_somme_donnee_par_client($montantTotal, $montantPaye) {
     if ($montantPaye < $montantTotal) {
@@ -159,46 +159,30 @@ function calculer_nombre_piece_ou_billet($reste, $pieces_billets_rendus, &$etat_
             
             }
             echo("\n"."reste ".$reste);
+            
         }else{
             echo("\n"."ce choix n'est pas disponible");
         }
 
-// garder le tampon
-// va chercher le reste dans le reste des pieces a la fin en allant du plus grand au plus petit
 
-
-
-
-
-    // }elseif($mode == "smallFirst"){
-    //     $table_croissant = $etat_caisse;// version croissante 
-    //     uasort($table_croissant, function($a, $b) { // trie croissant            
-    //         return $a["valeur"] <=> $b["valeur"];        
-    //     }); 
-        
-    //     foreach($table_croissant as $nom => $info){
-    //         echo($reste);
-    //         if ($reste <= 0){
-    //             break;
-    //         }
-    //         $valeur = $info["valeur"];
-            
-    //         // Si le reste est plus petit que la valeur de cette pièce, passer à la suivante
-    //         if ($reste < $valeur) {
-    //             continue;
-    //         }
-            
-    //         // Prendre le maximum possible de cette pièce avant de passer à la suivante
-    //         $quantite_a_prendre = intval($reste / $valeur);
-    //         $quantite_a_prendre = min($quantite_a_prendre, $etat_caisse[$nom]["quantite"]); // Limiter à la quantité disponible
-            
-    //         if ($quantite_a_prendre > 0) {
-    //             $pieces_billets_rendus[$nom] += $quantite_a_prendre;
-    //             $etat_caisse[$nom]["quantite"] -= $quantite_a_prendre;
-    //             $reste = round($reste - ($valeur * $quantite_a_prendre), 2);
-    //         }
-    //     }
-        
+    }elseif($mode == "smallFirst"){
+        echo("\n"."smallFirstmode");
+        foreach (array_reverse($etat_caisse, true) as $nom => $monnaie_choisie) {
+            if ($reste <= 0) {
+                break;  
+            }
+            echo("\n".$monnaie_choisie["valeur"]);
+            $quantite_a_prendre = intval($reste / $monnaie_choisie["valeur"]);
+            echo("\n".$quantite_a_prendre." resultat intval");
+            $quantite_a_prendre = min($quantite_a_prendre, $etat_caisse[$nom]["quantite"]-$etat_caisse[$nom]["tampon"]); // Limiter à la quantité disponible
+            echo("\n".$quantite_a_prendre." apres tampon");
+            if ($quantite_a_prendre > 0) {
+                $pieces_billets_rendus[$nom] += $quantite_a_prendre;
+                $etat_caisse[$nom]["quantite"] -= $quantite_a_prendre;
+                $reste = round($reste - ($monnaie_choisie["valeur"] * $quantite_a_prendre), 2);// cas de précision avec les décimales
+            }
+            echo("\n"."reste ".$reste); 
+        }
     }else{
         echo("ce mode n'exsiste pas");
     }
